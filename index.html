@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0A0D14">
+<meta name="description" content="Eczacılık ve sağlık kelimeleri için eşzamanlı görsel arama, Vikipedi + PubChem açıklaması, seçme ve ZIP indirme.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GörselKap">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob: https:; connect-src 'self' blob: https://tr.wikipedia.org https://en.wikipedia.org https://commons.wikimedia.org https://upload.wikimedia.org https://pubchem.ncbi.nlm.nih.gov https://api.openverse.org https://*.openverse.org; manifest-src 'self' data: blob:; worker-src 'self'; object-src 'none'; base-uri 'self'">
+<title>GörselKap · İlaç & Sağlık Arama</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js')</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M3 8V5a2 2 0 0 1 2-2h3' stroke='%234D8DFF'/%3E%3Cpath d='M16 3h3a2 2 0 0 1 2 2v3' stroke='%23FF5147'/%3E%3Cpath d='M21 16v3a2 2 0 0 1-2 2h-3' stroke='%23FFC53D'/%3E%3Cpath d='M8 21H5a2 2 0 0 1-2-2v-3' stroke='%233ECF8E'/%3E%3Ccircle cx='12' cy='12' r='4.2' stroke='%23EDF1FB'/%3E%3Ccircle cx='12' cy='12' r='1.6' fill='%234D8DFF'/%3E%3C/svg%3E">
+<style>
+:root{
+--bg0:#0A0D14;--bg1:#101524;--bg2:#161D30;--bg3:#1D2640;
+--line:rgba(122,150,255,.16);--line2:rgba(122,150,255,.32);
+--tx:#EDF1FB;--tx2:#A9B4CE;--tx3:#828DA9;
+--blue:#4D8DFF;--blue2:#8FB6FF;--blueDim:#2C55A6;
+--red:#FF5147;--red2:#FF9C94;--amber:#FFC53D;--amber2:#FFD98A;
+--green:#3ECF8E;--green2:#6FE3B0;
+--head:calc(58px + env(safe-area-inset-top,0px));
+--disp:system-ui,sans-serif;--body:system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}[hidden]{display:none!important}
+html{scroll-behavior:smooth;scrollbar-color:var(--blueDim) var(--bg0);scrollbar-width:thin}
+body{background:var(--bg0);color:var(--tx);font-family:var(--body);font-size:15px;line-height:1.5;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+::selection{background:rgba(77,141,255,.35)}
+::-webkit-scrollbar{width:10px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg0)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--blueDim),#1E3B75);border-radius:8px;border:2px solid var(--bg0)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,var(--blue),var(--blueDim))}
+button,input,textarea,select{font-family:inherit}
+button{color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--blue2)}img{max-width:100%}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:8px}
+.aura{position:fixed;inset:-15%;z-index:0;pointer-events:none;
+background:radial-gradient(620px 420px at 14% 6%,rgba(77,141,255,.18),transparent 62%),radial-gradient(520px 380px at 88% 12%,rgba(255,81,71,.12),transparent 60%),radial-gradient(640px 460px at 78% 92%,rgba(62,207,142,.11),transparent 62%),radial-gradient(480px 360px at 8% 84%,rgba(255,197,61,.09),transparent 60%);
+animation:drift 52s ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate3d(-1.5%,-1%,0) rotate(-1deg)}to{transform:translate3d(1.5%,1.5%,0) rotate(1.4deg)}}
+.grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E")}
+header{position:sticky;top:0;z-index:50;background:rgba(10,13,20,.85);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px);animation:dropIn .45s ease-out both}
+@keyframes dropIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+.hwrap{max-width:1180px;margin:0 auto;height:58px;display:flex;align-items:center;gap:8px;padding:0 14px}
+.brand{min-width:0;flex:1}
+.brand b{font-family:var(--disp);font-weight:700;font-size:17px;display:block;line-height:1.15;white-space:nowrap}
+.brand i{font-style:normal;font-size:9.5px;color:var(--tx3);letter-spacing:.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ibtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--tx2);background:rgba(22,29,48,.5);transition:.2s;flex:none}
+.ibtn:hover{color:var(--tx);border-color:var(--line2);background:var(--bg2)}
+#soundBtn[aria-pressed="false"]{color:var(--red2)}
+#installBtn{height:38px;padding:0 11px;border-radius:11px;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#fff;background:linear-gradient(160deg,#2E62C4,#24509E);box-shadow:0 4px 14px rgba(46,98,196,.4);flex:none}
+#netDot{width:8px;height:8px;border-radius:50%;flex:none}
+#netDot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+#netDot.off{background:var(--red);box-shadow:0 0 8px var(--red)}
+main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:14px 14px 0}
+#capture{position:sticky;top:calc(var(--head) + 8px);z-index:40;background:rgba(14,18,30,.88);backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);border:1px solid var(--line2);border-radius:20px;padding:13px;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:riseIn .5s .08s ease-out both}
+@supports not (backdrop-filter:blur(1px)){#capture{background:var(--bg1)}header{background:var(--bg0)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.clabel{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--tx3);margin-bottom:8px}
+.rec{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.crow{display:flex;gap:9px;align-items:flex-start}
+.inwrap{position:relative;flex:1;min-width:0}
+.inwrap .sic{position:absolute;left:12px;top:15px;color:var(--tx3);pointer-events:none}
+#wordInput{width:100%;min-height:54px;max-height:132px;border-radius:14px;border:1px solid var(--line2);background:var(--bg0);color:var(--tx);font-size:16px;line-height:1.35;padding:13px 38px 11px 40px;transition:.2s;resize:none;overflow-y:auto}
+#wordInput::placeholder{color:var(--tx3)}
+#wordInput:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(77,141,255,.22)}
+#clearInput{position:absolute;right:6px;top:8px;width:29px;height:29px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--tx3)}
+#clearInput:hover{color:var(--tx);background:var(--bg2)}
+.shutter{flex:none;display:flex;align-items:center;gap:7px;height:54px;padding:0 17px;border-radius:999px;font-family:var(--disp);font-weight:700;font-size:15.5px;color:#fff;background:linear-gradient(165deg,#D92D20,#B42318);box-shadow:0 6px 24px rgba(217,45,32,.45),inset 0 1px 0 rgba(255,255,255,.22);transition:transform .12s,box-shadow .2s}
+.shutter:hover{box-shadow:0 8px 30px rgba(217,45,32,.6),inset 0 1px 0 rgba(255,255,255,.22)}
+.shutter:active{transform:scale(.94)}
+.shutter.busy svg{animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.csub{display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-top:10px}
+.srcpill{display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg0);color:var(--tx2);font-size:11px;font-weight:600;white-space:nowrap}
+.srcpill svg{color:var(--green2)}
+.step{display:flex;align-items:center;background:var(--bg0);border:1px solid var(--line);border-radius:999px;padding:3px}
+.step button{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--tx2)}
+.step button:hover{background:var(--bg2);color:var(--tx)}
+.step button:disabled{opacity:.3;cursor:not-allowed}
+.step b{min-width:30px;text-align:center;font-size:12.5px;color:var(--blue2)}
+.step em{font-style:normal;font-size:10px;color:var(--tx3);padding:0 8px 0 4px;letter-spacing:.5px}
+.hint{font-size:11px;color:var(--tx3);flex:1;min-width:130px;text-align:right}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#tools{margin-top:14px;display:grid;gap:9px}
+.trow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.fsearch{position:relative;flex:1;min-width:180px}
+.fsearch span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--tx3)}
+#filterQ{width:100%;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg0);color:var(--tx);font-size:14px;padding:0 11px 0 34px}
+#filterQ:focus{outline:none;border-color:var(--blue)}
+#sortSel{height:40px;border-radius:12px;border:1px solid var(--line);background:var(--bg0);color:var(--tx);font-size:12.5px;padding:0 9px}
+#chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin}
+.chip{flex:none;display:flex;gap:5px;align-items:center;padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:rgba(16,21,36,.7);color:var(--tx2);font-size:11.5px;font-weight:600;transition:.16s}
+.chip b{font-size:10px;opacity:.75}
+.chip.on{border-color:var(--blue);background:rgba(77,141,255,.14);color:var(--blue2)}
+.bulk{display:flex;gap:7px;flex-wrap:wrap;align-items:center;padding:9px 11px;background:rgba(16,21,36,.75);border:1px solid var(--line);border-radius:14px}
+.selall{display:flex;gap:7px;align-items:center;font-size:11.5px;font-weight:600;color:var(--tx2);cursor:pointer}
+input[type=checkbox]{accent-color:var(--blue);width:17px;height:17px;cursor:pointer}
+#selCount{font-size:11.5px;color:var(--tx3);margin-right:auto}
+.bbtn{height:34px;padding:0 11px;border-radius:10px;font-size:11.5px;font-weight:700;border:1px solid var(--line);background:var(--bg2);color:var(--tx);display:flex;align-items:center;gap:5px;transition:.16s}
+.bbtn:hover{border-color:var(--line2);background:var(--bg3)}
+.bbtn.primary{background:linear-gradient(160deg,#2E62C4,#24509E);border-color:transparent;color:#fff}
+.bbtn.danger{color:var(--red2);border-color:rgba(255,81,71,.3);background:rgba(255,81,71,.08)}
+.bbtn:disabled{opacity:.35;pointer-events:none}
+.shead{display:flex;align-items:center;justify-content:space-between;margin:16px 2px 7px}
+.micro{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--tx3);display:flex;align-items:center;gap:6px}
+.lbtn{font-size:11.5px;font-weight:600;color:var(--blue2);padding:5px 8px;border-radius:8px}
+.lbtn:hover{background:rgba(77,141,255,.12)}
+.rail{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 7px;scrollbar-width:thin}
+.hchip{flex:none;display:flex;align-items:center;gap:6px;max-width:180px;padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(22,29,48,.6);color:var(--tx2);font-size:12.5px;font-weight:600;transition:.18s}
+.hchip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hchip svg{flex:none;color:var(--blue2)}
+.hchip:hover{border-color:var(--blue);color:var(--tx);background:var(--bg2)}
+.lhead{display:flex;align-items:baseline;justify-content:space-between;margin:18px 2px 9px}
+#countLabel{font-size:11.5px;color:var(--tx3)}
+#groups{display:grid;gap:13px}
+.grp{background:var(--bg1);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.35);scroll-margin-top:calc(var(--head) + 230px);animation:cardIn .35s ease-out both;transition:border-color .2s}
+@keyframes cardIn{from{opacity:0;transform:scale(.98) translateY(8px)}to{opacity:1;transform:none}}
+.grp[data-status="searching"]{border-color:rgba(77,141,255,.45)}
+.grp.pulse{animation:pulse 1.2s ease-out}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(77,141,255,.7)}100%{box-shadow:0 0 0 18px rgba(77,141,255,0)}}
+.ghead{display:flex;align-items:center;gap:9px;padding:12px 13px 8px;flex-wrap:wrap}
+.gword{font-family:var(--disp);font-weight:700;font-size:19px;flex:1;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pill{flex:none;display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:999px}
+.pill i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.q{background:rgba(255,197,61,.13);color:var(--amber2)}
+.pill.s{background:rgba(77,141,255,.15);color:var(--blue2)}
+.pill.s i{animation:blink 1.1s infinite}
+.pill.r{background:rgba(62,207,142,.13);color:var(--green2)}
+.pill.e{background:rgba(255,81,71,.14);color:var(--red2)}
+.gmeta{display:flex;gap:6px;padding:0 13px 9px;font-size:11px;color:var(--tx3);flex-wrap:wrap}
+.gmeta i{font-style:normal;opacity:.5}
+.gacts{display:flex;gap:6px;padding:0 11px 10px;flex-wrap:wrap}
+.gbtn{height:32px;padding:0 10px;border-radius:9px;font-size:11px;font-weight:600;border:1px solid var(--line);color:var(--tx2);display:flex;align-items:center;gap:5px;text-decoration:none;transition:.16s}
+.gbtn:hover{background:var(--bg2);color:var(--tx);border-color:var(--line2)}
+.gbtn.danger:hover{background:rgba(255,81,71,.12);color:var(--red2);border-color:rgba(255,81,71,.4)}
+.gbtn:disabled{opacity:.32;pointer-events:none}
+.desc{border-top:1px solid var(--line);background:rgba(10,14,24,.55)}
+.desc-head{width:100%;display:flex;align-items:center;gap:8px;padding:10px 13px;font-size:12px;font-weight:700;color:var(--tx2);letter-spacing:.3px}
+.desc-head:hover{color:var(--tx)}
+.desc-head .dic{color:var(--amber);display:flex}
+.desc-head .chev{margin-left:auto;display:flex;transition:transform .25s}
+.desc.open .desc-head .chev{transform:rotate(180deg)}
+.dtag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(77,141,255,.14);color:var(--blue2)}
+.dtag.pc{background:rgba(62,207,142,.13);color:var(--green2)}
+.desc-body{display:none;padding:0 13px 11px}
+.desc.open .desc-body{display:block;animation:riseIn .25s ease-out}
+.dsrc{border:1px solid var(--line);border-radius:12px;padding:10px 11px;margin-bottom:8px;background:var(--bg0)}
+.dsrc-h{display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:11px;font-weight:700;color:var(--tx2);flex-wrap:wrap}
+.dsrc-h a{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;text-decoration:none;margin-left:auto}
+.dsrc-h a:hover{text-decoration:underline}
+.dtext{font-size:12.5px;color:var(--tx2);line-height:1.55;overflow-wrap:anywhere}
+.dprops{margin-top:6px;font-size:11px;color:var(--tx3)}
+.dprops b{color:var(--blue2);font-weight:600}
+.dnone{font-size:12px;color:var(--tx3);padding:2px 0 6px}
+.dfoot{display:flex;justify-content:flex-end;margin-bottom:6px}
+.dl-btn{height:28px;padding:0 9px;border-radius:8px;font-size:10.5px;font-weight:600;border:1px solid var(--line);color:var(--tx2);display:flex;align-items:center;gap:5px}
+.dl-btn:hover{background:var(--bg2);color:var(--tx)}
+.warn{display:flex;gap:7px;align-items:flex-start;padding:9px 13px;border-top:1px dashed rgba(255,197,61,.35);background:rgba(255,197,61,.06);font-size:11px;color:var(--amber2);line-height:1.45}
+.warn svg{flex:none;margin-top:1px;color:var(--amber)}
+.vf{position:relative;height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(420px 220px at 50% 40%,#141B2E,#0B0F1A);border-top:1px solid var(--line)}
+.vf b{font-family:var(--disp);font-size:20px;color:rgba(237,241,251,.26);max-width:76%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vf .c{position:absolute;width:20px;height:20px;border:2.5px solid;opacity:.9}
+.vf .c1{top:10px;left:10px;border-color:var(--blue);border-right:0;border-bottom:0;border-radius:6px 0 0 0}
+.vf .c2{top:10px;right:10px;border-color:var(--red);border-left:0;border-bottom:0;border-radius:0 6px 0 0}
+.vf .c3{bottom:10px;right:10px;border-color:var(--amber);border-left:0;border-top:0;border-radius:0 0 6px 0}
+.vf .c4{bottom:10px;left:10px;border-color:var(--green);border-right:0;border-top:0;border-radius:0 0 0 6px}
+.vf.live .c{animation:blink 2s ease-in-out infinite}
+.vf .scan{position:absolute;left:8%;right:8%;height:2px;top:14%;background:linear-gradient(90deg,transparent,var(--blue),transparent);box-shadow:0 0 16px var(--blue);animation:scan 2s ease-in-out infinite}
+@keyframes scan{0%,100%{top:14%}50%{top:80%}}
+.vfs{position:absolute;bottom:14px;left:14px;right:14px;text-align:center;font-size:11.5px;color:var(--tx2)}
+.js-el{color:var(--blue2);font-weight:600}
+.errbox{min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;padding:20px;text-align:center;border-top:1px solid var(--line)}
+.errbox svg{color:var(--red2)}
+.errbox p{font-size:12.5px;color:var(--tx2);max-width:330px}
+.noimg{display:flex;gap:7px;align-items:center;padding:10px 13px;border-top:1px solid var(--line);font-size:11.5px;color:var(--tx3)}
+.noimg svg{color:var(--tx3);flex:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:5px;padding:5px;border-top:1px solid var(--line)}
+@media(min-width:600px){.grid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:7px;padding:7px}}
+.tile{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--bg2);border:2px solid transparent;cursor:pointer;transition:transform .15s,border-color .15s;padding:0;display:block;width:100%}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.tile:hover img{transform:scale(1.06)}
+.tile.sel{border-color:var(--blue);box-shadow:0 0 0 2px rgba(77,141,255,.3)}
+.tile.sel img{filter:brightness(.72)}
+.tick{position:absolute;top:5px;left:5px;width:22px;height:22px;border-radius:50%;background:rgba(8,11,18,.7);border:1.5px solid rgba(237,241,251,.5);display:flex;align-items:center;justify-content:center;color:transparent;transition:.15s;backdrop-filter:blur(4px)}
+.tile.sel .tick{background:var(--blue);border-color:var(--blue);color:#fff}
+.sbadge{position:absolute;top:5px;right:5px;font-size:8.5px;font-weight:700;letter-spacing:.4px;padding:2px 6px;border-radius:999px;background:rgba(8,11,18,.72);color:var(--tx2);border:1px solid rgba(122,150,255,.25);backdrop-filter:blur(4px)}
+.sbadge.pc{color:var(--green2);border-color:rgba(62,207,142,.4)}
+.sbadge.wk{color:var(--blue2);border-color:rgba(77,141,255,.4)}
+.tinfo{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font-size:9px;color:#fff;background:linear-gradient(transparent,rgba(6,9,15,.9));overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:.2s}
+.tile:hover .tinfo,.tile.sel .tinfo{opacity:1}
+#empty{text-align:center;padding:34px 12px 24px;animation:riseIn .6s .16s ease-out both}
+.art{position:relative;width:104px;height:104px;margin:0 auto 18px}
+.art::before{content:"";position:absolute;inset:-13px;border-radius:50%;border:1px solid rgba(77,141,255,.35);animation:ring 2.6s ease-out infinite}
+@keyframes ring{from{transform:scale(.75);opacity:.9}to{transform:scale(1.25);opacity:0}}
+.art svg{filter:drop-shadow(0 0 18px rgba(77,141,255,.4))}
+#empty h1{font-family:var(--disp);font-size:25px;margin-bottom:7px;line-height:1.2}
+#empty>p{color:var(--tx2);font-size:13.5px;max-width:450px;margin:0 auto 18px}
+.steps{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.stp{display:flex;align-items:center;gap:7px;background:var(--bg1);border:1px solid var(--line);border-radius:12px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--tx2)}
+.stp b{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px}
+.stp:nth-child(1) b{background:rgba(77,141,255,.18);color:var(--blue2)}
+.stp:nth-child(2) b{background:rgba(255,81,71,.16);color:var(--red2)}
+.stp:nth-child(3) b{background:rgba(62,207,142,.15);color:var(--green2)}
+.exlabel{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--tx3);margin-bottom:9px}
+.exs{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.ex{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line2);background:rgba(22,29,48,.6);color:var(--tx);transition:.18s}
+.ex svg{color:var(--amber)}
+.ex:hover{border-color:var(--amber);transform:translateY(-2px)}
+#exAll{margin-top:13px;height:42px;padding:0 17px;border-radius:999px;font-weight:700;font-size:13px;color:#fff;background:linear-gradient(160deg,#2E62C4,#24509E);box-shadow:0 6px 20px rgba(46,98,196,.35);display:inline-flex;align-items:center;gap:7px}
+.ewarn{max-width:450px;margin:18px auto 0;display:flex;gap:7px;align-items:flex-start;text-align:left;padding:10px 12px;border:1px dashed rgba(255,197,61,.35);border-radius:12px;background:rgba(255,197,61,.06);font-size:11px;color:var(--amber2);line-height:1.45}
+.ewarn svg{flex:none;margin-top:1px;color:var(--amber)}
+.foot{position:relative;z-index:1;text-align:center;color:var(--tx3);font-size:11px;padding:26px 18px calc(34px + env(safe-area-inset-bottom,0px));max-width:640px;margin:0 auto;line-height:1.6}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:9px}
+.dots i{width:6px;height:6px;border-radius:50%}
+#lb{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;background:rgba(5,8,14,.95);backdrop-filter:blur(8px)}
+.lbtop{flex:none;display:flex;align-items:center;gap:9px;padding:calc(9px + env(safe-area-inset-top,0px)) 13px 9px;border-bottom:1px solid var(--line)}
+#lbTitle{font-family:var(--disp);font-weight:700;font-size:15px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbscroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;padding:11px;display:flex;align-items:flex-start;justify-content:center}
+#lbImg{display:block;border-radius:8px;max-width:100%;height:auto}
+#lbImg.zoom{max-width:none;width:auto;max-height:none}
+.lbbar{flex:none;display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 13px calc(11px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.lbbar .gbtn{height:36px;font-size:12px;padding:0 12px}
+#lbMeta{font-size:10.5px;color:var(--tx3);width:100%;line-height:1.4}
+.sback{position:fixed;inset:0;z-index:120;display:flex;align-items:flex-end;justify-content:center;background:rgba(5,8,14,.75);backdrop-filter:blur(6px)}
+.sheet{position:relative;width:min(100%,520px);max-height:86vh;overflow:auto;background:var(--bg1);border:1px solid var(--line2);border-radius:22px 22px 0 0;padding:17px 17px calc(17px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(0,0,0,.5)}
+.sheet h2{font-family:var(--disp);font-size:20px;margin-bottom:4px;padding-right:44px}
+.sheet>p{font-size:12.5px;color:var(--tx2);margin-bottom:13px}
+.note{display:flex;gap:9px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--bg0);margin-bottom:7px;font-size:12px;color:var(--tx2);line-height:1.45}
+.note svg{flex:none;color:var(--green2);margin-top:1px}
+.note b{color:var(--tx)}
+.sclose{position:absolute;right:15px;top:15px}
+#expOv{position:fixed;inset:0;z-index:250;display:flex;align-items:center;justify-content:center;background:rgba(5,8,14,.78);backdrop-filter:blur(6px);padding:16px}
+.excard{width:min(100%,350px);background:var(--bg1);border:1px solid var(--line2);border-radius:18px;padding:21px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.exspin{width:32px;height:32px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--blue);animation:spin 1s linear infinite;margin:0 auto 11px}
+.excard h3{font-family:var(--disp);font-size:17px;margin-bottom:5px}
+.excard p{font-size:12px;color:var(--tx2);margin-bottom:13px;min-height:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.exbar{height:7px;border-radius:99px;background:var(--bg0);overflow:hidden}
+.exbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--green));transition:width .2s}
+#flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:400}
+#flash.go{animation:fl .5s ease-out}
+@keyframes fl{0%{opacity:0}12%{opacity:.8}100%{opacity:0}}
+#toasts{position:fixed;left:0;right:0;bottom:calc(15px + env(safe-area-inset-bottom,0px));z-index:300;display:flex;flex-direction:column;align-items:center;gap:7px;pointer-events:none;padding:0 13px}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:9px;width:min(100%,430px);background:var(--bg3);border:1px solid var(--line2);border-radius:14px;padding:11px 13px;font-size:12.5px;font-weight:600;box-shadow:0 12px 34px rgba(0,0,0,.5);opacity:0;transform:translateY(12px);transition:.25s}
+.toast.on{opacity:1;transform:none}
+.toast svg{flex:none;color:var(--green2)}
+.toast.warn svg{color:var(--amber)}
+.toast span{flex:1;min-width:0}
+.tact{flex:none;color:var(--blue2);font-weight:700;font-size:12.5px;padding:5px 9px;border-radius:9px;border:1px solid rgba(77,141,255,.4)}
+.tact:hover{background:rgba(77,141,255,.14)}
+@media(max-width:430px){.brand i{display:none}.hint{text-align:left;min-width:100%;order:9}.shutter{padding:0 13px;font-size:14.5px}.gword{font-size:17px}.grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}#installBtn{padding:0 9px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="aura"></div><div class="grain"></div>
+
+<header><div class="hwrap">
+<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3" stroke="#4D8DFF"/><path d="M16 3h3a2 2 0 0 1 2 2v3" stroke="#FF5147"/><path d="M21 16v3a2 2 0 0 1-2 2h-3" stroke="#FFC53D"/><path d="M8 21H5a2 2 0 0 1-2-2v-3" stroke="#3ECF8E"/><circle cx="12" cy="12" r="4.2" stroke="#EDF1FB"/><circle cx="12" cy="12" r="1.6" fill="#4D8DFF"/></svg>
+<div class="brand"><b>GörselKap</b><i>eczacılık & sağlık · açıklama + görsel · zip</i></div>
+<span id="netDot" class="on" title="Bağlantı durumu"></span>
+<button id="installBtn" type="button" hidden><span data-ic="download"></span>Kur</button>
+<button id="secBtn" class="ibtn" type="button" aria-label="Güvenlik ve kaynak notları"></button>
+<button id="soundBtn" class="ibtn" type="button" aria-pressed="true" aria-label="Sesi kapat"></button>
+</div></header>
+
+<main>
+<form id="capture" autocomplete="off">
+<div class="clabel"><span class="rec"></span>SAĞLIK & ECZACILIK KELİMELERİ · HER SATIR VEYA VİRGÜL AYRI ARAMA</div>
+<div class="crow">
+<div class="inwrap"><span class="sic" id="sic"></span>
+<textarea id="wordInput" rows="2" maxlength="800" placeholder="parasetamol&#10;ağrı kesici&#10;insülin" autocapitalize="none" autocorrect="off" spellcheck="false" aria-label="Aranacak kelimeler"></textarea>
+<button id="clearInput" type="button" aria-label="Metni temizle" hidden></button></div>
+<button id="goBtn" class="shutter" type="submit"><span id="goIc"></span>Ara</button>
+</div>
+<div class="csub">
+<span class="srcpill"><span data-ic="shield"></span>Vikipedi + PubChem + Commons + Openverse</span>
+<div class="step" aria-label="Eşzamanlı arama sayısı"><em>EŞZAMAN</em><button id="cMinus" type="button" aria-label="Azalt"></button><b id="cVal">3</b><button id="cPlus" type="button" aria-label="Artır"></button></div>
+<p class="hint" id="hint">3 kelime aynı anda aranır</p>
+</div>
+</form>
+
+<section id="tools" hidden>
+<div class="trow">
+<div class="fsearch"><span data-ic="search"></span><input id="filterQ" type="search" placeholder="Kelime, görsel veya açıklamada ara…" aria-label="Sonuçlarda ara"></div>
+<select id="sortSel" aria-label="Sırala"><option value="new">Yeni → Eski</option><option value="old">Eski → Yeni</option><option value="az">A → Z</option><option value="count">Çok görsel</option></select>
+</div>
+<div id="chips">
+<button class="chip on" type="button" data-f="all">Tümü <b>0</b></button>
+<button class="chip" type="button" data-f="ready">Hazır <b>0</b></button>
+<button class="chip" type="button" data-f="busy">Aranıyor <b>0</b></button>
+<button class="chip" type="button" data-f="error">Sonuç yok <b>0</b></button>
+</div>
+<div class="bulk">
+<label class="selall"><input id="selAll" type="checkbox">Tümünü seç</label>
+<span id="selCount">0 seçili</span>
+<button id="zipSel" class="bbtn primary" type="button" disabled><span data-ic="archive"></span>Seçilen ZIP</button>
+<button id="zipAll" class="bbtn" type="button"><span data-ic="archive"></span>Tüm ZIP</button>
+<button id="delSel" class="bbtn danger" type="button" disabled><span data-ic="trash"></span>Sil</button>
+<button id="clearAll" class="bbtn danger" type="button">Tümünü sil</button>
+</div>
+</section>
+
+<section id="histSec" hidden>
+<div class="shead"><span class="micro"><span data-ic="clock"></span>SON KELİMELER</span><button id="histClear" class="lbtn" type="button">Temizle</button></div>
+<div id="histRail" class="rail"></div>
+</section>
+
+<div class="lhead" id="listHead" hidden><span class="micro"><span data-ic="image"></span>SONUÇLAR</span><span id="countLabel"></span></div>
+<div id="groups"></div>
+
+<section id="empty">
+<div class="art"><svg width="104" height="104" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3" stroke="#4D8DFF"/><path d="M16 3h3a2 2 0 0 1 2 2v3" stroke="#FF5147"/><path d="M21 16v3a2 2 0 0 1-2 2h-3" stroke="#FFC53D"/><path d="M8 21H5a2 2 0 0 1-2-2v-3" stroke="#3ECF8E"/><circle cx="12" cy="12" r="4.6" stroke="#EDF1FB"/><circle cx="12" cy="12" r="1.8" fill="#4D8DFF"/><path d="M9.4 10.2a3.4 3.4 0 0 1 1.6-1.3" stroke="#EDF1FB" stroke-width="1.1"/></svg></div>
+<h1>İlaç & sağlık kelimesini yaz.</h1>
+<p>Her kelime için Vikipedi özeti, varsa PubChem molekül bilgisi ve Commons + Openverse görselleri eşzamanlı gelir. Beğendiklerini seç, açıklamalarla birlikte tek ZIP indir.</p>
+<div class="steps">
+<span class="stp"><b>1</b><span data-ic="search"></span>Yaz</span>
+<span class="stp"><b>2</b><span data-ic="check"></span>Seç</span>
+<span class="stp"><b>3</b><span data-ic="archive"></span>ZIP</span>
+</div>
+<div class="exlabel">ŞUNLARLA DENE</div>
+<div class="exs">
+<button class="ex" type="button" data-word="parasetamol"><span data-ic="plus"></span>parasetamol</button>
+<button class="ex" type="button" data-word="ağrı kesici"><span data-ic="plus"></span>ağrı kesici</button>
+<button class="ex" type="button" data-word="insülin"><span data-ic="plus"></span>insülin</button>
+<button class="ex" type="button" data-word="aspirin"><span data-ic="plus"></span>aspirin</button>
+</div>
+<button id="exAll" type="button"><span data-ic="aperture"></span>4 kelimeyi birlikte ara</button>
+<div class="ewarn"><span data-ic="alert"></span><span>Genel bilgidir, tıbbi tavsiye değildir. İlaç bilgisi için prospektüse ve eczacıya/hekime danış.</span></div>
+</section>
+</main>
+
+<footer class="foot">
+<div class="dots"><i style="background:#4D8DFF"></i><i style="background:#FF5147"></i><i style="background:#FFC53D"></i><i style="background:#3ECF8E"></i></div>
+Kaynaklar: Vikipedi (TR/EN), PubChem, Wikimedia Commons, Openverse. Lisans ve sahip bilgileri ZIP içindeki <b>kaynaklar.txt</b> dosyasında, açıklamalar <b>aciklama.txt</b> dosyasındadır.<br>
+Genel bilgidir, tıbbi tavsiye değildir. İlaç bilgisi için prospektüse ve eczacıya/hekime danış.
+</footer>
+
+<div id="lb" hidden role="dialog" aria-modal="true" aria-label="Görsel önizleme">
+<div class="lbtop"><span id="lbTitle"></span><button id="lbClose" class="ibtn" type="button" aria-label="Kapat"></button></div>
+<div class="lbscroll" id="lbScroll"><img id="lbImg" alt=""></div>
+<div class="lbbar">
+<button id="lbSel" class="gbtn" type="button"><span data-ic="check"></span>Seç</button>
+<button id="lbZoom" class="gbtn" type="button"><span data-ic="expand"></span>1:1</button>
+<button id="lbSave" class="gbtn" type="button"><span data-ic="download"></span>İndir</button>
+<a id="lbSrc" class="gbtn" target="_blank" rel="noopener"><span data-ic="external"></span>Kaynak</a>
+<span id="lbMeta"></span>
+</div>
+</div>
+
+<div id="secSheet" class="sback" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Güvenlik ve kaynak notları">
+<button id="secClose" class="ibtn sclose" type="button" aria-label="Kapat"></button>
+<h2>Güvenlik & kaynak</h2>
+<p>Bu uygulama cihaz izni istemez; arama geçmişi yalnızca bu cihazda saklanır.</p>
+<div class="note"><span data-ic="shield"></span><span><b>Görünürlük:</b> Yazdığın kelimeler Vikipedi, PubChem, Wikimedia Commons ve Openverse servislerine gider. API anahtarı kullanılmaz, Google'a bağlanılmaz. Hassas kelime yazma.</span></div>
+<div class="note"><span data-ic="shield"></span><span><b>Yerel veri:</b> Kelimeler, açıklamalar ve geçmiş sadece bu cihazda tutulur. Ortak telefonda “Temizle” ve “Tümünü sil” kullan.</span></div>
+<div class="note"><span data-ic="shield"></span><span><b>Kod:</b> Dış JavaScript kütüphanesi yok. ZIP cihazda oluşturulur, hiçbir yere yüklenmez. API metinleri kaçışlanmadan ekrana basılmaz.</span></div>
+<div class="note"><span data-ic="shield"></span><span><b>Lisans:</b> Görseller Creative Commons / kamu malı olabilir. Yayınlamadan önce sahibi ve lisansı kontrol et — ZIP'teki kaynaklar.txt bunu içerir.</span></div>
+<div class="note"><span data-ic="alert"></span><span><b>Sağlık uyarısı:</b> Açıklamalar genel bilgidir, tıbbi tavsiye değildir. İlaç bilgisi için prospektüse ve eczacıya/hekime danış.</span></div>
+</div></div>
+
+<div id="expOv" hidden><div class="excard"><div class="exspin"></div><h3>ZIP hazırlanıyor</h3><p id="expText">Görseller indiriliyor…</p><div class="exbar"><i id="expBar"></i></div></div></div>
+<div id="flash"></div>
+<div id="toasts" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ---------- ikonlar ---------- */
+const P={search:'<circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4.5 4.5"/>',aperture:'<circle cx="12" cy="12" r="10"/><path d="m14.31 8 5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16 3.95 6.06M14.31 16H2.83m13.79-4-5.74 9.94"/>',download:'<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/>',archive:'<rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M10 13h4"/>',expand:'<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/>',refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/>',trash:'<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="m19 6-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/>',external:'<path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M20 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h5"/>',x:'<path d="M18 6 6 18M6 6l12 12"/>',vol:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>',volx:'<path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6M22 9l-6 6"/>',image:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="m21 15-4.5-4.5L9 18"/>',alert:'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',check:'<path d="m20 6-11 11-5-5"/>',plus:'<path d="M12 5v14M5 12h14"/>',minus:'<path d="M5 12h14"/>',shield:'<path d="M12 3 5 6v5c0 4.5 3 7.6 7 9 4-1.4 7-4.5 7-9V6z"/><path d="m9.5 11.8 1.7 1.7 3.5-3.7"/>',book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',flask:'<path d="M10 2v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 8V2"/><path d="M8.5 2h7"/><path d="M7 15h10"/>',chev:'<path d="m6 9 6 6 6-6"/>'};
+const ic=(n,s=18)=>'<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(P[n]||'')+'</svg>';
+document.querySelectorAll('[data-ic]').forEach(el=>el.innerHTML=ic(el.dataset.ic,el.closest('.micro')?13:15));
+
+/* ---------- yardımcılar ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl=u=>/^https:\/\//i.test(String(u||''))?String(u):'';
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():'id'+Date.now()+Math.random().toString(36).slice(2,7));
+const low=s=>String(s).toLocaleLowerCase('tr');
+const strip=s=>String(s).replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+function clampText(s,n){s=strip(s);if(s.length<=n)return s;const cut=s.slice(0,n);const i=Math.max(cut.lastIndexOf('. '),cut.lastIndexOf('! '),cut.lastIndexOf('? '));return(i>140?cut.slice(0,i+1):cut)+'…';}
+const TR={'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u','â':'a','û':'u','î':'i','İ':'i'};
+const slug=s=>low(s).replace(/[çğıöşüâûîİ]/g,c=>TR[c]||c).replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'').slice(0,40)||'gorsel';
+const rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const WARN='Genel bilgidir, tıbbi tavsiye değildir. İlaç bilgisi için prospektüse ve eczacıya/hekime danış.';
+function ago(ts){const s=Math.floor((Date.now()-ts)/1000);if(s<45)return'şimdi';const m=Math.floor(s/60);if(m<60)return m+' dk önce';const h=Math.floor(m/60);if(h<24)return h+' sa önce';if(h<48)return'dün';return new Date(ts).toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'-'+p(d.getHours())+p(d.getMinutes());}
+function saveBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),8000);}
+
+/* ---------- durum ---------- */
+const LS='gorselkap:v5';
+let state={groups:[],hist:[],muted:false,conc:3,view:{q:'',f:'all',sort:'new'}};
+try{const p=JSON.parse(localStorage.getItem(LS)||'null');
+if(p){if(Array.isArray(p.groups))state.groups=p.groups.filter(g=>g&&g.id&&g.word).map(g=>({...g,images:Array.isArray(g.images)?g.images:[],sel:Array.isArray(g.sel)?g.sel:[]}));
+if(Array.isArray(p.hist))state.hist=p.hist.filter(w=>typeof w==='string').slice(0,14);
+state.muted=!!p.muted;state.conc=Math.max(1,Math.min(6,Number(p.conc)||3));
+if(p.view)state.view={q:String(p.view.q||''),f:['all','ready','busy','error'].includes(p.view.f)?p.view.f:'all',sort:['new','old','az','count'].includes(p.view.sort)?p.view.sort:'new'};}}catch(e){}
+function persist(){try{localStorage.setItem(LS,JSON.stringify(state,(k,v)=>k==='job'?undefined:v));}catch(e){}}
+const byId=id=>state.groups.find(g=>g.id===id);
+const nodes=new Map();
+let active=0,exporting=false;
+
+/* ---------- ses ---------- */
+let AC=null,master=null,nb=null;
+function initAudio(){if(!AC){try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;AC=new C();master=AC.createGain();master.gain.value=state.muted?0:.15;master.connect(AC.destination);nb=AC.createBuffer(1,AC.sampleRate*.09,AC.sampleRate);const d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}catch(e){}}if(AC&&AC.state==='suspended')AC.resume().catch(()=>{});}
+const canPlay=()=>AC&&master&&!state.muted&&AC.state==='running';
+function clickS(t,f,g){const s=AC.createBufferSource();s.buffer=nb;const bp=AC.createBiquadFilter();bp.type='bandpass';bp.frequency.value=f;bp.Q.value=.9;const gn=AC.createGain();gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.001,t+.07);s.connect(bp);bp.connect(gn);gn.connect(master);s.start(t);s.stop(t+.09);}
+function tone(t,f0,f1,d,g,ty){const o=AC.createOscillator();o.type=ty||'sine';o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+d);const gn=AC.createGain();gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(gn);gn.connect(master);o.start(t);o.stop(t+d+.02);}
+function sndFocus(){if(canPlay())tone(AC.currentTime,760,900,.07,.1);}
+function sndShutter(){if(!canPlay())return;const t=AC.currentTime;clickS(t,2900,.85);clickS(t+.075,2100,.45);tone(t,150,90,.06,.25,'triangle');}
+function sndTick(){if(canPlay())tone(AC.currentTime,1200,1500,.04,.07);}
+function sndErr(){if(canPlay())tone(AC.currentTime,220,140,.16,.15,'triangle');}
+function renderSound(){const b=$('soundBtn');b.innerHTML=ic(state.muted?'volx':'vol',19);b.setAttribute('aria-pressed',String(!state.muted));b.setAttribute('aria-label',state.muted?'Sesi aç':'Sesi kapat');}
+$('soundBtn').addEventListener('click',()=>{initAudio();state.muted=!state.muted;if(master)master.gain.value=state.muted?0:.15;renderSound();persist();if(!state.muted)sndTick();});
+
+/* ---------- toast / flash ---------- */
+function toast(msg,icon,opts){opts=opts||{};const w=$('toasts'),el=document.createElement('div');el.className='toast'+(opts.warn?' warn':'');el.innerHTML=ic(icon||'check',17)+'<span>'+esc(msg)+'</span>';
+const kill=()=>{el.classList.remove('on');setTimeout(()=>el.remove(),260);};
+if(opts.action){const b=document.createElement('button');b.className='tact';b.type='button';b.textContent=opts.action.label;b.addEventListener('click',()=>{opts.action.fn();kill();});el.appendChild(b);}
+w.appendChild(el);requestAnimationFrame(()=>el.classList.add('on'));setTimeout(kill,opts.timeout||4200);while(w.children.length>3)w.firstChild.remove();}
+function flash(){if(rm)return;const f=$('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+$('flash').addEventListener('animationend',e=>e.target.classList.remove('go'));
+
+/* ---------- ZIP (kütüphanesiz) ---------- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0;}
+async function makeZip(files){
+const enc=new TextEncoder(),parts=[],cen=[];let off=0;
+const d=new Date(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1),dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate();
+for(const f of files){
+const nm=enc.encode(f.name),data=new Uint8Array(await f.blob.arrayBuffer()),crc=crc32(data);
+const lh=new DataView(new ArrayBuffer(30));
+lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);
+lh.setUint16(10,tm,true);lh.setUint16(12,dt,true);lh.setUint32(14,crc,true);lh.setUint32(18,data.length,true);lh.setUint32(22,data.length,true);
+lh.setUint16(26,nm.length,true);lh.setUint16(28,0,true);
+parts.push(new Uint8Array(lh.buffer),nm,data);
+const ch=new DataView(new ArrayBuffer(46));
+ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);
+ch.setUint16(12,tm,true);ch.setUint16(14,dt,true);ch.setUint32(16,crc,true);ch.setUint32(20,data.length,true);ch.setUint32(24,data.length,true);
+ch.setUint16(28,nm.length,true);ch.setUint32(42,off,true);
+cen.push(new Uint8Array(ch.buffer),nm);off+=30+nm.length+data.length;}
+let cs=0;cen.forEach(p=>cs+=p.length);
+const e=new DataView(new ArrayBuffer(22));
+e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+return new Blob([...parts,...cen,new Uint8Array(e.buffer)],{type:'application/zip'});}
+
+/* ---------- API altyapısı: 15 sn zaman aşımı ---------- */
+const newJob=()=>({cancelled:false,timers:new Set(),aborts:new Set()});
+function cancelJob(g){const j=g.job;if(!j)return;j.cancelled=true;j.timers.forEach(clearTimeout);j.aborts.forEach(a=>{try{a.abort();}catch(e){}});j.timers.clear();j.aborts.clear();g.job=null;}
+async function jfetch(url,job,ms){
+const ctl=new AbortController();job.aborts.add(ctl);
+const to=setTimeout(()=>ctl.abort(),ms||15000);job.timers.add(to);
+try{const r=await fetch(url,{signal:ctl.signal,credentials:'omit'});
+if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}
+finally{clearTimeout(to);job.timers.delete(to);job.aborts.delete(ctl);}}
+function settled(p){return p.then(v=>({ok:true,v}),()=>({ok:false,v:null}));}
+function findDesc(node,depth){
+if(!node||typeof node!=='object'||depth>8)return'';
+if(Array.isArray(node)){for(const x of node){const r=findDesc(x,depth+1);if(r)return r;}return'';}
+if(node.String&&typeof node.String==='string')return node.String;
+for(const k of Object.keys(node)){const r=findDesc(node[k],depth+1);if(r)return r;}
+return'';}
+
+/* ---------- 1) Vikipedi (TR → EN, langlinks) ---------- */
+async function wikiFetch(lang,word,job){
+const u='https://'+lang+'.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent(word)
++'&gsrlimit=1&gsrnamespace=0&prop=extracts|pageimages|langlinks&exintro=1&explaintext=1&piprop=thumbnail&pithumbsize=800&lllang=en&lllimit=1&redirects=1&format=json&origin=*';
+const j=await jfetch(u,job,15000);
+const pages=j&&j.query&&j.query.pages?j.query.pages:{};
+const p=Object.values(pages)[0];
+if(!p||typeof p.title!=='string')return null;
+const extract=strip(p.extract||'');
+if(!extract&&!p.thumbnail)return null;
+return{title:p.title,extract,
+thumb:safeUrl(p.thumbnail&&p.thumbnail.source),
+tw:(p.thumbnail&&p.thumbnail.width)||0,th:(p.thumbnail&&p.thumbnail.height)||0,
+en:(p.langlinks&&p.langlinks[0]&&p.langlinks[0]['*'])||'',
+lang,url:'https://'+lang+'.wikipedia.org/wiki/'+encodeURIComponent(p.title.replace(/ /g,'_'))};}
+
+/* ---------- 2) PubChem (sessizce atlanır) ---------- */
+async function pubchemFetch(name,job){
+if(!name)return null;
+const base='https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/name/'+encodeURIComponent(name);
+const pj=await jfetch(base+'/property/MolecularFormula,MolecularWeight,IUPACName/JSON',job,15000);
+const pr=pj&&pj.PropertyTable&&pj.PropertyTable.Properties&&pj.PropertyTable.Properties[0];
+if(!pr||!pr.CID)return null;
+let desc='';
+try{
+const dj=await jfetch('https://pubchem.ncbi.nlm.nih.gov/rest/pug_view/data/compound/'+pr.CID+'/JSON?heading=Record+Description',job,15000);
+const sec=dj&&dj.Record&&dj.Record.Section;
+if(sec)desc=clampText(findDesc(sec,0),600);
+}catch(e){}
+return{cid:pr.CID,name,formula:pr.MolecularFormula||'',weight:pr.MolecularWeight||'',iupac:pr.IUPACName||'',desc,
+url:'https://pubchem.ncbi.nlm.nih.gov/compound/'+pr.CID};}
+function pcImage(pc){
+if(!pc)return null;
+const u='https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/'+pc.cid+'/PNG?image_size=600x600';
+return{key:'pc'+pc.cid,idx:-1,title:(pc.name||'Bileşik')+' · molekül yapısı (2D)',thumb:u,full:u,page:pc.url,
+w:600,h:600,license:'Kamu malı (PubChem verisi)',artist:'PubChem',src:'PubChem'};}
+
+/* ---------- 3) Wikimedia Commons ---------- */
+async function commonsFetch(word,job){
+const u='https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch='+encodeURIComponent('filetype:bitmap '+word)
++'&gsrlimit=24&gsrnamespace=6&prop=imageinfo&iiprop=url|size|mime|extmetadata&iiextmetadatafilter=LicenseShortName|Artist&iiurlwidth=800&format=json&origin=*';
+const j=await jfetch(u,job,15000);
+const pages=j&&j.query&&j.query.pages?j.query.pages:{};
+return Object.values(pages).map(p=>{
+const ii=p.imageinfo&&p.imageinfo[0];
+if(!ii||!safeUrl(ii.thumburl))return null;
+if(ii.mime&&!/^image\/(jpeg|png|webp|gif)/i.test(ii.mime))return null;
+return{key:'c'+p.pageid,idx:p.index||0,
+title:strip(p.title||'').replace(/^File:/i,'').replace(/\.[a-z0-9]+$/i,''),
+thumb:safeUrl(ii.thumburl),full:safeUrl(ii.url)||safeUrl(ii.thumburl),
+page:safeUrl(ii.descriptionurl)||('https://commons.wikimedia.org/wiki/'+encodeURIComponent(p.title||'')),
+w:ii.thumbwidth||ii.width||0,h:ii.thumbheight||ii.height||0,
+license:strip((ii.extmetadata&&ii.extmetadata.LicenseShortName&&ii.extmetadata.LicenseShortName.value)||'Belirtilmemiş'),
+artist:strip((ii.extmetadata&&ii.extmetadata.Artist&&ii.extmetadata.Artist.value)||'Bilinmiyor').slice(0,120),
+src:'Commons'};
+}).filter(Boolean).sort((a,b)=>a.idx-b.idx);}
+
+/* ---------- 4) Openverse ---------- */
+async function openverseFetch(word,job){
+const u='https://api.openverse.org/v1/images/?q='+encodeURIComponent(word)+'&page_size=20';
+const j=await jfetch(u,job,15000);
+const res=j&&Array.isArray(j.results)?j.results:[];
+return res.map((r,i)=>{
+const th=safeUrl(r.thumbnail);if(!th)return null;
+const lic=[r.license,r.license_version].filter(Boolean).join(' ').toUpperCase()||'Lisans belirtilmemiş';
+return{key:'o'+(r.id||uid()),idx:i,title:strip(r.title||'Görsel'),
+thumb:th,full:safeUrl(r.url)||th,page:safeUrl(r.foreign_landing_url)||safeUrl(r.url)||th,
+w:r.width||0,h:r.height||0,
+license:lic+(r.source?' · '+r.source:''),
+artist:strip(r.creator||'Bilinmiyor').slice(0,120),src:'Openverse'};
+}).filter(Boolean);}
+
+/* ---------- yinelenen görsel eleme ---------- */
+function dupKey(im){
+const u=String(im.thumb||'');
+if(u.includes('wikimedia.org')){
+const parts=u.split('/');const f=decodeURIComponent(parts[parts.length-1]||'').toLowerCase();
+if(f)return'wm:'+f;}
+return'u:'+u.split('?')[0].toLowerCase();}
+
+/* ---------- eşzamanlı kuyruk ---------- */
+function pump(){
+while(active<state.conc){const g=state.groups.find(x=>x.status==='queued');if(!g)break;active++;
+run(g).catch(()=>fail(g,'Beklenmeyen hata — Yenile ile tekrar dene.')).finally(()=>{active--;pump();});}
+sync();}
+async function run(g){
+const job=newJob();g.job=job;g.startedAt=Date.now();g.status='searching';
+g.detail='Vikipedi, PubChem, Commons ve Openverse taranıyor…';update(g);sync();
+const word=g.word;
+const trP=settled(wikiFetch('tr',word,job));
+const enSearchP=settled(wikiFetch('en',word,job));
+const cmWordP=settled(commonsFetch(word,job));
+const ovP=settled(openverseFetch(word,job));
+const chain=(async()=>{
+const tr=await trP;if(job.cancelled)throw new Error('iptal');
+const enSearch=await enSearchP;if(job.cancelled)throw new Error('iptal');
+let enTitle=(tr.ok&&tr.v&&tr.v.en)||(enSearch.ok&&enSearch.v&&enSearch.v.title)||'';
+if(!enTitle&&/^[a-zA-Z0-9 -]+$/.test(word))enTitle=word;
+const pcP=enTitle?settled(pubchemFetch(enTitle,job)):Promise.resolve({ok:false,v:null});
+const cmEnP=(enTitle&&low(enTitle)!==low(word))?settled(commonsFetch(enTitle,job)):Promise.resolve({ok:false,v:null});
+const pc=await pcP,cmEn=await cmEnP;
+return{enSearch,pc,cmEn};})();
+const trR=await trP;if(job.cancelled)return;
+const ch=await settled(chain);if(job.cancelled)return;
+const enSearchR=(ch.ok&&ch.v.enSearch)||{ok:false,v:null};
+const pcR=(ch.ok&&ch.v.pc)||{ok:false,v:null};
+const cmEnR=(ch.ok&&ch.v.cmEn)||{ok:false,v:null};
+const cmWordR=await cmWordP,ovR=await ovP;
+if(job.cancelled)return;
+const tr=(trR.ok&&trR.v)?trR.v:null;
+const en=(enSearchR.ok&&enSearchR.v)?enSearchR.v:null;
+const wikiPick=(tr&&tr.extract)?tr:(en&&en.extract)?en:(tr||en);
+const pc=(pcR.ok&&pcR.v)?pcR.v:null;
+g.desc={wiki:wikiPick?{title:wikiPick.title,lang:wikiPick.lang,text:wikiPick.extract,url:wikiPick.url}:null,
+pubchem:pc?{name:pc.name,desc:pc.desc,formula:pc.formula,weight:pc.weight,iupac:pc.iupac,url:pc.url}:null};
+const seen=new Set(),imgs=[];
+const add=im=>{if(!im||!safeUrl(im.thumb))return;const k=dupKey(im);if(seen.has(k))return;seen.add(k);imgs.push(im);};
+add(pcImage(pc));
+if(wikiPick&&wikiPick.thumb)add({key:'w'+low(wikiPick.lang)+wikiPick.title,idx:-1,
+title:wikiPick.title+' · Vikipedi görseli',thumb:wikiPick.thumb,full:wikiPick.thumb,page:wikiPick.url,
+w:wikiPick.tw,h:wikiPick.th,license:'Vikipedi sayfa görseli — lisans için kaynak sayfaya bak',
+artist:'Vikipedi ('+wikiPick.lang.toUpperCase()+')',src:wikiPick.lang==='tr'?'Vikipedi TR':'Vikipedi EN'});
+if(cmWordR.ok&&Array.isArray(cmWordR.v))cmWordR.v.forEach(add);
+if(cmEnR.ok&&Array.isArray(cmEnR.v))cmEnR.v.forEach(add);
+if(ovR.ok&&Array.isArray(ovR.v))ovR.v.forEach(add);
+g.images=imgs.slice(0,60);g.sel=[];g.ts=Date.now();g.startedAt=null;g.job=null;
+if(g.images.length||hasDesc(g)){g.status='ready';g.detail=g.images.length?'':'Görsel bulunamadı; yalnızca açıklama getirildi.';}
+else{g.status='error';
+const anyOk=trR.ok||enSearchR.ok||cmWordR.ok||ovR.ok||pcR.ok||cmEnR.ok;
+g.detail=anyOk?'Bu kelime için görsel veya açıklama bulunamadı. “parasetamol”, “insülin” gibi farklı bir terim dene.':'Bağlantı hatası, Yenile ile tekrar dene.';}
+update(g);sync();persist();
+if(g.status==='ready'){flash();sndShutter();try{navigator.vibrate&&navigator.vibrate(18);}catch(e){}}else sndErr();}
+function fail(g,m){cancelJob(g);g.status='error';g.detail=m;g.startedAt=null;update(g);sync();persist();sndErr();}
+function hasDesc(g){return!!(g.desc&&((g.desc.wiki&&g.desc.wiki.text)||(g.desc.pubchem&&(g.desc.pubchem.desc||g.desc.pubchem.formula))));}
+
+/* ---------- seçim ---------- */
+const selSet=g=>new Set(g.sel||[]);
+const isSel=(g,k)=>(g.sel||[]).includes(k);
+function toggle(g,k){g.sel=g.sel||[];const i=g.sel.indexOf(k);if(i<0)g.sel.push(k);else g.sel.splice(i,1);sndTick();update(g);sync();persist();}
+function allImages(){const out=[];state.groups.forEach(g=>(g.images||[]).forEach(im=>out.push({g,im})));return out;}
+function selectedImages(){const out=[];state.groups.forEach(g=>{const s=selSet(g);(g.images||[]).forEach(im=>{if(s.has(im.key))out.push({g,im});});});return out;}
+
+/* ---------- render ---------- */
+const PIL={queued:['Sırada','q'],searching:['Aranıyor','s'],ready:['Hazır','r'],error:['Sonuç yok','e']};
+const SB={'PubChem':['PC','pc'],'Vikipedi TR':['VT','wk'],'Vikipedi EN':['VE','wk'],'Commons':['CM',''],'Openverse':['OV','']};
+function tileHTML(g,im){
+const sel=isSel(g,im.key);const sb=SB[im.src]||['?',''];
+return '<button class="tile'+(sel?' sel':'')+'" type="button" data-tile="'+esc(im.key)+'" aria-pressed="'+sel+'" aria-label="'+esc(im.title)+' — seç">'
++'<img src="'+esc(im.thumb)+'" alt="'+esc(im.title)+'" loading="lazy" decoding="async">'
++'<span class="tick">'+ic('check',13)+'</span>'
++'<span class="sbadge '+sb[1]+'">'+sb[0]+'</span>'
++'<span class="tinfo">'+esc(im.title.slice(0,44))+'</span></button>';}
+function descBlock(g){
+const d=g.desc||{},w=d.wiki,p=d.pubchem,has=hasDesc(g);
+const open=g.descOpen!==false;
+let inner='';
+if(g.status==='queued'||g.status==='searching'){
+inner='<p class="dnone">'+(g.status==='queued'?'Sırada bekliyor…':'Vikipedi ve PubChem açıklamaları getiriliyor…')+'</p>';}
+else{
+if(w&&w.text){
+inner+='<div class="dsrc"><div class="dsrc-h">'+ic('book',14)
++'<span>'+(w.lang==='tr'?'Türkçe Vikipedi':'İngilizce Vikipedi')+'</span>'
++'<span class="dtag">'+esc(w.title)+'</span>'
++'<a href="'+esc(safeUrl(w.url))+'" target="_blank" rel="noopener">'+ic('external',12)+'Kaynak</a></div>'
++'<p class="dtext">'+esc(clampText(w.text,700))+'</p></div>';}
+if(p){
+inner+='<div class="dsrc"><div class="dsrc-h">'+ic('flask',14)
++'<span>PubChem</span><span class="dtag pc">'+esc(p.name||'Bileşik')+'</span>'
++'<a href="'+esc(safeUrl(p.url))+'" target="_blank" rel="noopener">'+ic('external',12)+'Kaynak</a></div>'
++(p.desc?'<p class="dtext">'+esc(clampText(p.desc,500))+'</p>':'')
++((p.formula||p.weight)?'<p class="dprops">'+(p.formula?'Formül: <b>'+esc(p.formula)+'</b>':'')
++(p.formula&&p.weight?' · ':'')
++(p.weight?'Molekül ağırlığı: <b>'+esc(String(p.weight))+' g/mol</b>':'')+'</p>':'')
++'</div>';}
+if(!inner)inner='<p class="dnone">Bu kelime için Vikipedi/PubChem açıklaması bulunamadı.</p>';
+if(has)inner+='<div class="dfoot"><button class="dl-btn" type="button" data-act="descdl">'+ic('download',12)+'Açıklamayı indir (.txt)</button></div>';}
+return '<div class="desc'+(open?' open':'')+'">'
++'<button class="desc-head" type="button" data-act="desc" aria-expanded="'+open+'">'
++'<span class="dic">'+ic('book',15)+'</span><span>Açıklama</span>'
++(w?'<span class="dtag">'+(w.lang==='tr'?'TR':'EN')+' Vikipedi</span>':'')
++(p?'<span class="dtag pc">PubChem</span>':'')
++'<span class="chev">'+ic('chev',15)+'</span></button>'
++'<div class="desc-body">'+inner+'</div>'
++'<div class="warn">'+ic('alert',13)+'<span>'+WARN+'</span></div></div>';}
+function groupHTML(g){
+const p=PIL[g.status]||PIL.error;const n=(g.images||[]).length,sn=(g.sel||[]).length;
+const pillLabel=(g.status==='ready'&&!n)?'Yalnızca açıklama':p[0];
+let body='';
+if(g.status==='queued'||g.status==='searching'){
+const el=g.startedAt?Math.max(0,Math.round((Date.now()-g.startedAt)/1000)):0;
+body='<div class="vf'+(g.status==='searching'?' live':'')+'"><i class="c c1"></i><i class="c c2"></i><i class="c c3"></i><i class="c c4"></i><b>'+esc(g.word)+'</b>'
++(g.status==='searching'?'<span class="scan"></span>':'')
++'<span class="vfs">'+esc(g.detail||'Sırada…')+(g.status==='searching'?' · <span class="js-el">'+el+' sn</span>':'')+'</span></div>';}
+else if(g.status==='error'){body='<div class="errbox">'+ic('alert',22)+'<p>'+esc(g.detail||'Sonuç alınamadı.')+'</p></div>';}
+else if(n){body='<div class="grid">'+g.images.map(im=>tileHTML(g,im)).join('')+'</div>';}
+else{body='<div class="noimg">'+ic('image',14)+'<span>Görsel bulunamadı — yalnızca açıklama getirildi.</span></div>';}
+const ready=g.status==='ready'&&n>0;
+const srcs=[];
+if(g.desc&&g.desc.wiki)srcs.push(g.desc.wiki.lang==='tr'?'Vikipedi TR':'Vikipedi EN');
+if(g.desc&&g.desc.pubchem)srcs.push('PubChem');
+const is=new Set((g.images||[]).map(i=>i.src));
+if(is.has('Commons'))srcs.push('Commons');
+if(is.has('Openverse'))srcs.push('Openverse');
+return '<div class="ghead"><span class="gword">'+esc(g.word)+'</span><span class="pill '+p[1]+'"><i></i>'+pillLabel+'</span></div>'
++'<div class="gmeta"><span data-ts="'+(g.ts||g.created||Date.now())+'">'+ago(g.ts||g.created||Date.now())+'</span>'
++(srcs.length?'<i>·</i><span>'+esc(srcs.join(' · '))+'</span>':'')
++(ready?'<i>·</i><span>'+n+' görsel</span>':'')
++(sn?'<i>·</i><span style="color:var(--blue2)">'+sn+' seçili</span>':'')+'</div>'
++'<div class="gacts">'
++'<button class="gbtn" type="button" data-act="all"'+(ready?'':' disabled')+'>'+ic('check',14)+(ready&&sn===n?'Seçimi kaldır':'Tümünü seç')+'</button>'
++'<button class="gbtn" type="button" data-act="zip"'+(ready?'':' disabled')+'>'+ic('archive',14)+'ZIP</button>'
++'<button class="gbtn" type="button" data-act="refresh"'+(g.status==='searching'||g.status==='queued'?' disabled':'')+'>'+ic('refresh',14)+'Yenile</button>'
++'<button class="gbtn danger" type="button" data-act="del">'+ic('trash',14)+'Sil</button></div>'
++descBlock(g)+body;}
+function bindTiles(node){
+node.querySelectorAll('.tile img').forEach(img=>{img.addEventListener('error',()=>{
+const t=img.closest('.tile');if(t){t.style.opacity='.35';t.style.pointerEvents='none';img.alt='Görsel yüklenemedi';}});});}
+function addGroup(g){const el=document.createElement('article');el.className='grp';el.dataset.id=g.id;el.dataset.status=g.status;el.innerHTML=groupHTML(g);nodes.set(g.id,el);bindTiles(el);return el;}
+function update(g){const el=nodes.get(g.id);if(!el)return;el.dataset.status=g.status;el.innerHTML=groupHTML(g);bindTiles(el);}
+function visible(){
+let a=[...state.groups];const q=low(state.view.q.trim());
+if(q)a=a.filter(g=>low(g.word).includes(q)
+||(g.images||[]).some(im=>low(im.title).includes(q))
+||(g.desc&&g.desc.wiki&&low(g.desc.wiki.text).includes(q))
+||(g.desc&&g.desc.pubchem&&low(g.desc.pubchem.desc||'').includes(q)));
+const f=state.view.f;
+if(f==='ready')a=a.filter(g=>g.status==='ready');
+else if(f==='busy')a=a.filter(g=>g.status==='searching'||g.status==='queued');
+else if(f==='error')a=a.filter(g=>g.status==='error');
+const s=state.view.sort;
+if(s==='old')a.sort((x,y)=>(x.created||x.ts)-(y.created||y.ts));
+else if(s==='az')a.sort((x,y)=>x.word.localeCompare(y.word,'tr'));
+else if(s==='count')a.sort((x,y)=>(y.images||[]).length-(x.images||[]).length);
+else a.sort((x,y)=>(y.created||y.ts)-(x.created||x.ts));
+return a;}
+function render(){const l=$('groups');l.innerHTML='';nodes.clear();visible().forEach(g=>l.appendChild(addGroup(g)));sync();}
+function sync(){
+const n=state.groups.length,r=state.groups.filter(g=>g.status==='ready').length,
+b=state.groups.filter(g=>g.status==='searching').length,q=state.groups.filter(g=>g.status==='queued').length,
+e=state.groups.filter(g=>g.status==='error').length,
+imgs=allImages().length,sel=selectedImages().length;
+$('tools').hidden=!n;$('listHead').hidden=!n;$('empty').hidden=!!n;$('histSec').hidden=!state.hist.length;
+$('goBtn').classList.toggle('busy',active>0);
+$('countLabel').textContent=n+' kelime · '+imgs+' görsel · '+sel+' seçili'+(b||q?' · '+(b+q)+' işleniyor':'');
+const c={all:n,ready:r,busy:b+q,error:e};
+document.querySelectorAll('#chips [data-f]').forEach(ch=>{ch.classList.toggle('on',state.view.f===ch.dataset.f);ch.querySelector('b').textContent=c[ch.dataset.f];});
+$('selCount').textContent=sel+' seçili';
+$('zipSel').disabled=exporting||!sel;$('delSel').disabled=!sel;
+$('zipAll').disabled=exporting||!imgs;
+const vis=visible();let tot=0,sl=0;
+vis.forEach(g=>{const s=selSet(g);(g.images||[]).forEach(im=>{tot++;if(s.has(im.key))sl++;});});
+$('selAll').checked=tot>0&&sl===tot;$('selAll').indeterminate=sl>0&&sl<tot;}
+
+/* ---------- geçmiş ---------- */
+function renderHist(){const r=$('histRail');r.innerHTML='';state.hist.forEach(w=>{const b=document.createElement('button');b.className='hchip';b.type='button';b.innerHTML=ic('clock',13)+'<span>'+esc(w)+'</span>';b.addEventListener('click',()=>submit([w]));r.appendChild(b);});$('histSec').hidden=!state.hist.length;}
+function pushHist(ws){ws.forEach(w=>{state.hist=state.hist.filter(x=>low(x)!==low(w));state.hist.unshift(w);});state.hist=state.hist.slice(0,14);renderHist();}
+function renderConc(){$('cVal').textContent=state.conc;$('cMinus').disabled=state.conc<=1;$('cPlus').disabled=state.conc>=6;$('hint').textContent=state.conc+' kelime aynı anda aranır';}
+
+/* ---------- gönderme ---------- */
+function submit(words){
+initAudio();
+if(!navigator.onLine){toast('Arama için internet gerekir','alert',{warn:true});return;}
+words=words.map(w=>w.trim().slice(0,70)).filter(Boolean);
+const seen=new Set(),added=[];
+for(const w of words){
+if(seen.has(low(w)))continue;seen.add(low(w));
+const dup=state.groups.find(g=>low(g.word)===low(w));
+if(dup){const el=nodes.get(dup.id);if(el){el.scrollIntoView({behavior:rm?'auto':'smooth',block:'start'});el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');}toast('“'+w+'” zaten listede — Yenile ile tazele','clock');continue;}
+if(state.groups.length+added.length>=40){toast('En fazla 40 kelime tutulur — önce bazılarını sil','alert',{warn:true});break;}
+added.push({id:uid(),word:w,status:'queued',detail:'',images:[],sel:[],desc:{wiki:null,pubchem:null},descOpen:true,created:Date.now(),ts:Date.now(),startedAt:null,job:null});}
+if(!added.length)return;
+state.groups=[...added,...state.groups];
+pushHist(added.map(g=>g.word));render();persist();sndFocus();
+const f=nodes.get(added[0].id);if(f)f.scrollIntoView({behavior:rm?'auto':'smooth',block:'start'});
+pump();}
+function grow(){const t=$('wordInput');t.style.height='auto';t.style.height=Math.min(132,Math.max(54,t.scrollHeight))+'px';}
+$('capture').addEventListener('submit',e=>{e.preventDefault();const t=$('wordInput'),ws=t.value.split(/[,;\n]+/);
+if(!ws.some(w=>w.trim())){t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake');toast('Önce bir kelime yaz','alert',{warn:true});t.focus();return;}
+submit(ws);t.value='';$('clearInput').hidden=true;grow();t.blur();});
+$('wordInput').addEventListener('input',e=>{$('clearInput').hidden=!e.target.value;grow();});
+$('clearInput').innerHTML=ic('x',15);
+$('clearInput').addEventListener('click',()=>{$('wordInput').value='';$('clearInput').hidden=true;grow();$('wordInput').focus();});
+$('sic').innerHTML=ic('search',17);$('goIc').innerHTML=ic('aperture',19);
+$('secBtn').innerHTML=ic('shield',18);$('cMinus').innerHTML=ic('minus',15);$('cPlus').innerHTML=ic('plus',15);
+document.querySelectorAll('.ex').forEach(b=>b.addEventListener('click',()=>submit([b.dataset.word])));
+$('exAll').addEventListener('click',()=>submit(['parasetamol','ağrı kesici','insülin','aspirin']));
+$('histClear').addEventListener('click',()=>{const bk=state.hist.slice();state.hist=[];renderHist();persist();toast('Geçmiş temizlendi','trash',{action:{label:'Geri al',fn:()=>{state.hist=bk;renderHist();persist();}}});});
+$('cMinus').addEventListener('click',()=>{state.conc=Math.max(1,state.conc-1);renderConc();persist();});
+$('cPlus').addEventListener('click',()=>{state.conc=Math.min(6,state.conc+1);renderConc();persist();pump();});
+$('filterQ').value=state.view.q;$('sortSel').value=state.view.sort;
+$('filterQ').addEventListener('input',e=>{state.view.q=e.target.value;render();persist();});
+$('sortSel').addEventListener('change',e=>{state.view.sort=e.target.value;render();persist();});
+document.querySelectorAll('#chips [data-f]').forEach(b=>b.addEventListener('click',()=>{state.view.f=b.dataset.f;render();persist();}));
+$('selAll').addEventListener('change',e=>{const on=e.target.checked;visible().forEach(g=>{g.sel=on?(g.images||[]).map(i=>i.key):[];update(g);});sync();persist();sndTick();});
+$('zipSel').addEventListener('click',()=>doExport(selectedImages()));
+$('zipAll').addEventListener('click',()=>doExport(allImages()));
+$('delSel').addEventListener('click',()=>{const ids=new Set();selectedImages().forEach(({g})=>ids.add(g.id));removeGroups(state.groups.filter(g=>ids.has(g.id)));});
+$('clearAll').addEventListener('click',()=>removeGroups(state.groups.slice()));
+
+function removeGroups(list){
+if(!list.length)return;
+const ids=new Set(list.map(g=>g.id)),removed=[];
+state.groups.forEach((g,i)=>{if(ids.has(g.id))removed.push({g,i});});
+list.forEach(g=>cancelJob(g));
+state.groups=state.groups.filter(g=>!ids.has(g.id));
+render();persist();
+toast(removed.length+' kelime silindi','trash',{timeout:6000,action:{label:'Geri al',fn:()=>{
+removed.sort((a,b)=>a.i-b.i).forEach(({g,i})=>{if(g.status==='searching')g.status='queued';state.groups.splice(Math.min(i,state.groups.length),0,g);});
+render();persist();pump();}}});}
+
+/* ---------- grup etkileşimleri ---------- */
+$('groups').addEventListener('click',e=>{
+const tile=e.target.closest('[data-tile]');
+const card=e.target.closest('.grp');if(!card)return;
+const g=byId(card.dataset.id);if(!g)return;
+if(tile){e.preventDefault();initAudio();
+if(tile.dataset.long==='1'){openLb(g,tile.dataset.tile);}else toggle(g,tile.dataset.tile);return;}
+const b=e.target.closest('[data-act]');if(!b)return;
+e.preventDefault();initAudio();const act=b.dataset.act;
+if(act==='desc'){g.descOpen=g.descOpen===false;persist();
+const blk=card.querySelector('.desc');
+if(blk){blk.classList.toggle('open',g.descOpen!==false);b.setAttribute('aria-expanded',String(g.descOpen!==false));}
+sndTick();return;}
+if(act==='descdl'){if(hasDesc(g)){saveBlob(new Blob([descTextFor(g)],{type:'text/plain;charset=utf-8'}),'aciklama-'+slug(g.word)+'.txt');toast('Açıklama indiriliyor…','download');}return;}
+if(act==='all'){const n=(g.images||[]).length;g.sel=(g.sel||[]).length===n?[]:g.images.map(i=>i.key);sndTick();update(g);sync();persist();}
+else if(act==='zip'){const s=selSet(g);const list=(g.images||[]).filter(im=>s.has(im.key)).map(im=>({g,im}));doExport(list.length?list:(g.images||[]).map(im=>({g,im})));}
+else if(act==='refresh'){cancelJob(g);g.status='queued';g.detail='';g.images=[];g.sel=[];g.desc={wiki:null,pubchem:null};update(g);sync();persist();pump();}
+else if(act==='del')removeGroups([g]);});
+/* uzun basma = büyüt */
+let lpTimer=null,lpTile=null;
+$('groups').addEventListener('touchstart',e=>{const t=e.target.closest('[data-tile]');if(!t)return;lpTile=t;lpTimer=setTimeout(()=>{if(lpTile){lpTile.dataset.long='1';const card=lpTile.closest('.grp');const g=card&&byId(card.dataset.id);if(g){openLb(g,lpTile.dataset.tile);try{navigator.vibrate&&navigator.vibrate(12);}catch(e2){}}lpTimer=null;}},480);},{passive:true});
+['touchend','touchmove','touchcancel'].forEach(ev=>$('groups').addEventListener(ev,()=>{if(lpTimer){clearTimeout(lpTimer);lpTimer=null;}if(lpTile){setTimeout(()=>{if(lpTile)lpTile.dataset.long='0';lpTile=null;},60);}},{passive:true}));
+
+/* ---------- indirme ---------- */
+async function fetchTimed(url,ms){
+const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),ms);
+try{const r=await fetch(url,{signal:ctl.signal,mode:'cors',credentials:'omit'});
+if(!r.ok)throw new Error('HTTP '+r.status);
+const b=await r.blob();if(!b||!b.size)throw new Error('boş');return b;}
+finally{clearTimeout(t);}}
+async function fetchBlob(im){
+const th=safeUrl(im.thumb),full=safeUrl(im.full);
+if(th){try{return await fetchTimed(th,15000);}catch(e){}}
+if(full&&full!==th)return await fetchTimed(full,15000);
+throw new Error('İndirilemedi');}
+function extOf(blob,im){const t=(blob&&blob.type)||'';if(t.includes('png'))return'.png';if(t.includes('webp'))return'.webp';if(t.includes('gif'))return'.gif';if(t.includes('jpeg')||t.includes('jpg'))return'.jpg';const m=String(im.thumb||'').match(/\.(jpe?g|png|webp|gif)(?:\?|$)/i);return m?'.'+m[1].toLowerCase().replace('jpeg','jpg'):'.jpg';}
+async function downloadOne(g,im){
+try{const b=await fetchBlob(im);saveBlob(b,slug(g.word)+'-'+slug(im.title).slice(0,26)+extOf(b,im));toast('Görsel indiriliyor…','download');}
+catch(e){toast('Doğrudan indirme engellendi. Kaynağı aç, uzun basıp kaydet.','image',{warn:true,timeout:7000,action:{label:'Aç',fn:()=>window.open(safeUrl(im.page)||safeUrl(im.full)||safeUrl(im.thumb),'_blank','noopener')}});}}
+function descTextFor(g){
+const d=g.desc||{};let t='KELİME: '+g.word+'\n';
+if(d.wiki&&d.wiki.text)t+='\n[Vikipedi '+(d.wiki.lang==='tr'?'Türkçe':'İngilizce')+'] '+d.wiki.title+'\n'+strip(d.wiki.text)+'\nKaynak: '+d.wiki.url+'\n';
+if(d.pubchem){t+='\n[PubChem] '+(d.pubchem.name||'')+'\n';
+if(d.pubchem.desc)t+=strip(d.pubchem.desc)+'\n';
+if(d.pubchem.formula)t+='Formül: '+d.pubchem.formula+'\n';
+if(d.pubchem.weight)t+='Molekül ağırlığı: '+d.pubchem.weight+' g/mol\n';
+if(d.pubchem.iupac)t+='IUPAC: '+d.pubchem.iupac+'\n';
+t+='Kaynak: '+d.pubchem.url+'\n';}
+if(!hasDesc(g))t+='\nBu kelime için açıklama bulunamadı.\n';
+t+='\nUYARI: '+WARN+'\n';
+return t;}
+function expSet(t,p){$('expText').textContent=t;$('expBar').style.width=Math.max(0,Math.min(100,p))+'%';}
+async function doExport(list){
+if(exporting)return;
+list=list.filter(({im})=>im&&safeUrl(im.thumb));
+if(!list.length){toast('İndirilecek görsel yok — önce seç','alert',{warn:true});return;}
+exporting=true;sync();$('expOv').hidden=false;expSet('Görseller indiriliyor…',0);
+const files=[],failed=[],used=new Set();
+let credits='GörselKap — görsel kaynak listesi\n'+new Date().toLocaleString('tr-TR')+'\n\n';
+for(let i=0;i<list.length;i++){
+const {g,im}=list[i];expSet((i+1)+'/'+list.length+' · '+g.word,Math.round(i/list.length*78));
+try{
+const b=await fetchBlob(im);
+let base=slug(g.word)+'-'+String(i+1).padStart(2,'0')+'-'+slug(im.title).slice(0,24);
+let name=base+extOf(b,im),k=2;while(used.has(name)){name=base+'-'+k+extOf(b,im);k++;}
+used.add(name);files.push({name,blob:b});
+credits+=name+'\n  Kelime: '+g.word+'\n  Başlık: '+im.title+'\n  Kaynak: '+(im.src||'—')+'\n  Sahibi: '+im.artist+'\n  Lisans: '+im.license+'\n  Bağlantı: '+im.page+'\n\n';
+}catch(e){failed.push({g,im});credits+='[İNDİRİLEMEDİ] '+g.word+' / '+im.title+'\n  Sahibi: '+im.artist+'\n  Lisans: '+im.license+'\n  '+im.page+'\n\n';}}
+try{
+expSet('ZIP yazılıyor…',86);
+const zf=[...files,{name:'kaynaklar.txt',blob:new Blob([credits],{type:'text/plain;charset=utf-8'})}];
+const gs=[];const gseen=new Set();
+list.forEach(({g})=>{if(!gseen.has(g.id)){gseen.add(g.id);gs.push(g);}});
+let ac='GörselKap — açıklamalar\n'+new Date().toLocaleString('tr-TR')+'\n\n'+WARN+'\n\n';
+gs.forEach(g=>{ac+='========================================\n'+descTextFor(g)+'\n';});
+zf.push({name:'aciklama.txt',blob:new Blob([ac],{type:'text/plain;charset=utf-8'})});
+if(failed.length)zf.push({name:'indirilemeyenler.txt',blob:new Blob([failed.map(({g,im})=>g.word+'\t'+im.title+'\t'+(im.full||im.thumb)).join('\n')],{type:'text/plain;charset=utf-8'})});
+const out=await makeZip(zf);expSet('İndiriliyor…',100);
+saveBlob(out,'gorselkap-'+stamp()+'.zip');
+toast(files.length+' görsel + açıklamalar ZIP’e eklendi'+(failed.length?' · '+failed.length+' başarısız (liste eklendi)':''),'archive',{timeout:6500,warn:!!failed.length});
+sndShutter();
+}catch(e){toast('ZIP oluşturulamadı — tek tek indirmeyi dene','alert',{warn:true});}
+finally{exporting=false;$('expOv').hidden=true;sync();}}
+
+/* ---------- lightbox ---------- */
+let cur=null,zoom=false;
+function openLb(g,key){
+const im=(g.images||[]).find(x=>x.key===key);if(!im)return;
+cur={g,im};zoom=false;
+$('lbTitle').textContent=im.title;
+const img=$('lbImg');img.className='';img.src=im.thumb;img.alt=im.title;
+$('lbSrc').href=safeUrl(im.page)||safeUrl(im.full)||safeUrl(im.thumb);
+$('lbMeta').textContent=(im.src||'—')+' · '+(im.artist||'Bilinmiyor')+' · '+(im.license||'—')+(im.w?' · '+im.w+'×'+im.h:'');
+$('lbZoom').innerHTML=ic('expand',15)+'1:1';
+$('lbSel').innerHTML=ic('check',15)+(isSel(g,im.key)?'Seçili ✓':'Seç');
+$('lb').hidden=false;document.body.style.overflow='hidden';$('lbScroll').scrollTop=0;$('lbClose').focus();}
+function closeLb(){$('lb').hidden=true;document.body.style.overflow='';cur=null;}
+$('lbClose').innerHTML=ic('x',18);
+$('lbClose').addEventListener('click',closeLb);
+$('lb').addEventListener('click',e=>{if(e.target===$('lb')||e.target===$('lbScroll'))closeLb();});
+$('lbZoom').addEventListener('click',()=>{const img=$('lbImg');zoom=!zoom;img.className=zoom?'zoom':'';$('lbZoom').innerHTML=ic('expand',15)+(zoom?'Sığdır':'1:1');});
+$('lbSel').addEventListener('click',()=>{if(!cur)return;toggle(cur.g,cur.im.key);$('lbSel').innerHTML=ic('check',15)+(isSel(cur.g,cur.im.key)?'Seçili ✓':'Seç');});
+$('lbSave').addEventListener('click',()=>{if(cur)downloadOne(cur.g,cur.im);});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('lb').hidden)closeLb();if(!$('secSheet').hidden)closeSec();}});
+let lastTap=0;
+$('lbImg').addEventListener('click',()=>{const now=Date.now();if(now-lastTap<320)$('lbZoom').click();lastTap=now;});
+
+/* ---------- güvenlik sayfası ---------- */
+function closeSec(){$('secSheet').hidden=true;document.body.style.overflow='';}
+$('secBtn').addEventListener('click',()=>{$('secSheet').hidden=false;document.body.style.overflow='hidden';});
+$('secClose').innerHTML=ic('x',18);
+$('secClose').addEventListener('click',closeSec);
+$('secSheet').addEventListener('click',e=>{if(e.target===$('secSheet'))closeSec();});
+
+/* ---------- PWA kurulum ---------- */
+let deferredPrompt=null;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;if(!standalone())$('installBtn').hidden=false;});
+window.addEventListener('appinstalled',()=>{deferredPrompt=null;$('installBtn').hidden=true;toast('GörselKap ana ekrana eklendi','check');});
+if(isIOS&&!standalone())$('installBtn').hidden=false;
+$('installBtn').addEventListener('click',async()=>{
+initAudio();
+if(deferredPrompt){const p=deferredPrompt;deferredPrompt=null;
+try{p.prompt();const c=await p.userChoice;if(c&&c.outcome==='accepted')toast('Kurulum başladı','check');else $('installBtn').hidden=false;}
+catch(e){$('installBtn').hidden=false;}return;}
+toast(isIOS?'Safari: Paylaş → Ana Ekrana Ekle':'Tarayıcı menüsü (⋮) → Uygulamayı yükle / Ana ekrana ekle','download',{timeout:8000});});
+
+/* ---------- ağ & saat ---------- */
+function netSync(){$('netDot').className=navigator.onLine?'on':'off';}
+window.addEventListener('online',()=>{netSync();toast('Bağlantı geri geldi','check');pump();});
+window.addEventListener('offline',()=>{netSync();toast('Çevrimdışısın — yeni arama için internet gerekir','alert',{warn:true,timeout:6000});});
+setInterval(()=>{
+document.querySelectorAll('[data-ts]').forEach(el=>el.textContent=ago(+el.dataset.ts));
+state.groups.forEach(g=>{if(g.status==='searching'&&g.startedAt){const el=nodes.get(g.id)&&nodes.get(g.id).querySelector('.js-el');if(el)el.textContent=Math.max(0,Math.round((Date.now()-g.startedAt)/1000))+' sn';}});},1000);
+
+/* ---------- açılış ---------- */
+state.groups.forEach(g=>{
+g.sel=Array.isArray(g.sel)?g.sel:[];
+g.images=(Array.isArray(g.images)?g.images:[]).filter(im=>im&&safeUrl(im.thumb)&&im.src);
+if(!g.desc||typeof g.desc!=='object')g.desc={wiki:null,pubchem:null};
+if(g.descOpen===undefined)g.descOpen=true;
+if(!g.created)g.created=g.ts||Date.now();
+if(g.status==='searching'||g.status==='queued'){g.status='queued';g.detail='';g.startedAt=null;}
+else if(g.status==='ready'&&!g.images.length&&!hasDesc(g)){g.status='queued';g.detail='';}
+g.job=null;delete g.src;});
+renderSound();renderHist();renderConc();render();netSync();persist();pump();
+</script>
+</body>
+</html>
